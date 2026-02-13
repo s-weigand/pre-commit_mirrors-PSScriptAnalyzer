@@ -1,0 +1,57 @@
+name: "Update to new tag"
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "55 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Render templates to update
+        id: update
+        run: uv run .github/scripts/update-hook.py
+
+      - name: Commit changes and create tag
+        if: ${{steps.update.outputs.tag}}
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -u
+          MESSAGE="⬆️ Update from ${{ steps.update.outputs.current_version }} to ${{ steps.update.outputs.tag }}"
+          git commit -m "$MESSAGE"
+          git tag -a "${{ steps.update.outputs.tag }}" -m "$MESSAGE"
+
+      - name: Push changes
+        if: ${{steps.update.outputs.tag}}
+        uses: ad-m/github-push-action@v1.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository: "s-weigand/pre-commit_mirrors-PSScriptAnalyzer"
+          branch: "main"
+          tags: true
+
+      - name: Build and push image
+        if: ${{steps.update.outputs.tag}}
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: ps-script-analyzer
+          tags: ${{ steps.update.outputs.tag }}
+          registry: ghcr.io
+          dockerfile: Dockerfile
+          buildArgs: "PS_ANALYZER_VERSION=${{ steps.update.outputs.tag }}"
+          directory: .
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
