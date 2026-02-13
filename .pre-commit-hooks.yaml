@@ -2,7 +2,7 @@
   name: PS Lint
   language: docker_image
   pass_filenames: false
-  entry: ghcr.io/s-weigand/ps-script-analyzer:1.23.0 pwsh -Command
+  entry: ghcr.io/s-weigand/ps-script-analyzer:1.24.0 pwsh -Command
   args:
     - Invoke-ScriptAnalyzer -EnableExit -Recurse -Path . | out-string -width 200
   types: [powershell]
@@ -10,7 +10,7 @@
   name: PS Format
   language: docker_image
   pass_filenames: false
-  entry: ghcr.io/s-weigand/ps-script-analyzer:1.23.0 pwsh -Command
+  entry: ghcr.io/s-weigand/ps-script-analyzer:1.24.0 pwsh -Command
   args:
     - Get-ChildItem -Recurse '*.ps*' | ForEach-Object { Set-Content -Path $_.FullName -Value ((Invoke-Formatter -ScriptDefinition (Get-Content -Raw -Path $_.FullName)) -replace "`r`n", "`n") -Encoding utf8 -NoNewline }
   types: [powershell]
