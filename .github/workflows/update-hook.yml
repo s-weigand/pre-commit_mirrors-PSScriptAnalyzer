@@ -45,7 +45,7 @@ jobs:
 
       - name: Build and push image
         if: ${{steps.update.outputs.tag}}
-        uses: mr-smithers-excellent/docker-build-push@v6
+        uses: mr-smithers-excellent/docker-build-push@v7
         with:
           image: ps-script-analyzer
           tags: ${{ steps.update.outputs.tag }}
